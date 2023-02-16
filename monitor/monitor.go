@@ -13,38 +13,37 @@ type Monitor struct {
 	app         interface{}
 }
 
-func (m *Monitor) Analyse(event interface{}) []models.StdAnalyseRespBody {
-	var res []models.StdAnalyseRespBody
+func (m *Monitor) AnalyseLoop(event interface{}, ac chan models.AnalyseChanData, done chan struct{}) {
 	for _, a := range m.analysers {
 		req := models.StdAnalyseReqBody{}
 		resp := a.Analyse(req)
-		res = append(res, resp)
-
-		m.SaveAnalyserData(req, resp)
+		ac <- models.AnalyseChanData{
+			Req:  req,
+			Resp: resp,
+		}
 	}
-
-	return res
+	done <- struct{}{}
 }
 
-func (m *Monitor) Feedback(event interface{}) []models.StdFeedbackRespBody {
-	var res []models.StdFeedbackRespBody
+func (m *Monitor) FeedbackLoop(event interface{}, fc chan models.FeedbackChanData, done chan struct{}) {
 	for _, a := range m.feedbackers {
 		req := models.StdFeedbackReqBody{}
 		resp := a.Feedback(req)
-		res = append(res, resp)
-		m.SaveFeedbackerData(req, resp)
+		fc <- models.FeedbackChanData{
+			Req:  req,
+			Resp: resp,
+		}
 	}
-
-	return res
+	done <- struct{}{}
 }
 
-func (m *Monitor) SaveAnalyserData(req models.StdAnalyseReqBody, resp models.StdAnalyseRespBody) error {
-	fmt.Println("Saved analyser data")
+func (m *Monitor) SaveAnalyserData(data models.AnalyseChanData) error {
+	fmt.Println("Saved analyser data", data)
 	return nil
 }
 
-func (m *Monitor) SaveFeedbackerData(req models.StdFeedbackReqBody, resp models.StdFeedbackRespBody) error {
-	fmt.Println("Saved feedbacker data")
+func (m *Monitor) SaveFeedbackerData(data models.FeedbackChanData) error {
+	fmt.Println("Saved feedbacker data", data)
 	return nil
 }
 

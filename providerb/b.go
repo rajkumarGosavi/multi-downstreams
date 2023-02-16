@@ -17,10 +17,10 @@ func New() *ProviderB {
 
 func (b *ProviderB) Analyse(models.StdAnalyseReqBody) models.StdAnalyseRespBody {
 	fmt.Println("PBApi1")
-	return models.StdAnalyseRespBody{}
+	return models.StdAnalyseRespBody{OP: "PB Analyse"}
 }
 
 func (b *ProviderB) Feedback(models.StdFeedbackReqBody) models.StdFeedbackRespBody {
 	fmt.Println("PBApi2")
-	return models.StdFeedbackRespBody{}
+	return models.StdFeedbackRespBody{OP: "PB Feedback"}
 }

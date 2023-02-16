@@ -1,6 +1,7 @@
 package main
 
 import (
+	"abstraction/models"
 	"abstraction/monitor"
 	"fmt"
 )
@@ -17,12 +18,39 @@ func main() {
 
 	m := monitor.New()
 
+	analyticRespChan := make(chan models.AnalyseChanData)
+	feedbackRespChan := make(chan models.FeedbackChanData)
+	AnalysisDone := make(chan struct{})
+	FeedbackDone := make(chan struct{})
+
 	for _, e := range events {
 		switch e.Action {
 		case "analyse":
-			m.Analyse(e)
+			go func() {
+				for {
+					select {
+					case <-AnalysisDone:
+						return
+					case data := <-analyticRespChan:
+						m.SaveAnalyserData(data)
+					}
+				}
+			}()
+			m.AnalyseLoop(e, analyticRespChan, AnalysisDone)
+
 		case "feedback":
-			m.Feedback(e)
+			go func() {
+				for {
+					select {
+					case <-FeedbackDone:
+						return
+					case data := <-feedbackRespChan:
+						m.SaveFeedbackerData(data)
+					}
+				}
+			}()
+
+			m.FeedbackLoop(e, feedbackRespChan, FeedbackDone)
 		}
 	}
 
